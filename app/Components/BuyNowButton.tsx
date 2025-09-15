@@ -17,8 +17,8 @@ type Mode = 'erc20' | 'native';
 const MODE: Mode = 'native';                 // 'erc20' for token, 'native' for chain coin
 const TARGET_CHAIN_ID = 484;               // Sei EVM Testnet (change if needed)
 const RECIPIENT = '0xB7296cc1c96F861447790DA2295902349A63b169'; // jisko 1 token bhejna hai
-//const ERC20_TOKEN_ADDRESS = '0xYourToken';  // MODE='erc20' par required
-const FIXED_HUMAN_AMOUNT = '0.1';             // 1 token fixed
+const ERC20_TOKEN_ADDRESS: `0x${string}` = '0x0000000000000000000000000000000000000000';  // MODE='erc20' par required
+const FIXED_HUMAN_AMOUNT = '1';             // 1 token fixed
 /** ======================= */
 
 export default function BuyNowButton({ className }: { className?: string }) {
