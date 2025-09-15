@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { FaArrowLeft, FaImage, FaCoins, FaFire, FaGem } from "react-icons/fa";
 import { TbHexagonLetterN } from "react-icons/tb";
+import BuyNowButton from "./BuyNowButton";
 
 interface NFTProps {
   onBack: () => void;
@@ -197,13 +198,9 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
                         </div>
                         <span className="text-green-400 font-bold">{nft.price}</span>
                       </div>
-                      <motion.button
-                        className="w-full mt-3 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-semibold rounded-lg hover:scale-[1.02] transition-all duration-300"
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Buy Now
-                      </motion.button>
+                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                        <BuyNowButton className="mt-3 w-full" />
+                      </motion.div>
                     </div>
                   </motion.div>
                 ))}
