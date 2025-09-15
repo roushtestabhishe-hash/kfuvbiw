@@ -25,6 +25,7 @@ export default function BuyNowButton({ className }: { className?: string }) {
   const { address, chainId, isConnected } = useAccount();
   const { switchChain } = useSwitchChain();
 
+  // ERC20 decimals
   const { data: decData, isLoading: isDecLoading } = useReadContract({
     address: MODE === 'erc20' ? (ERC20_TOKEN_ADDRESS as `0x${string}`) : undefined,
     abi: erc20Abi,
@@ -41,7 +42,7 @@ export default function BuyNowButton({ className }: { className?: string }) {
     useWaitForTransactionReceipt({ hash: txHash });
 
   useEffect(() => {
-    // success par toast/unlock/redirect yahan laga sakte ho
+    // success par toast/unlock/redirect yahan add kar sakte ho
   }, [isSuccess, txHash]);
 
   const disabledReason = useMemo(() => {
@@ -94,7 +95,7 @@ export default function BuyNowButton({ className }: { className?: string }) {
       <button
         onClick={onClick}
         disabled={!!disabledReason}
-        className="w-full rounded-xl px-4 py-2 font-medium shadow bg-black text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition"
+        className="w-full rounded-lg px-4 py-2 font-semibold bg-black text-white hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition"
       >
         {label}
       </button>
