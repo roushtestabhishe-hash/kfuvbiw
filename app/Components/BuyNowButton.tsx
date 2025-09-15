@@ -14,11 +14,11 @@ import { erc20Abi, parseUnits } from 'viem';
 type Mode = 'erc20' | 'native';
 
 /** === EDIT YEH VALUES === */
-const MODE: Mode = 'erc20';                 // 'erc20' for token, 'native' for chain coin
-const TARGET_CHAIN_ID = 1328;               // Sei EVM Testnet (change if needed)
-const RECIPIENT = '0xYourRecipientAddress'; // jisko 1 token bhejna hai
-const ERC20_TOKEN_ADDRESS = '0xYourToken';  // MODE='erc20' par required
-const FIXED_HUMAN_AMOUNT = '1';             // 1 token fixed
+const MODE: Mode = 'native';                 // 'erc20' for token, 'native' for chain coin
+const TARGET_CHAIN_ID = 484;               // Sei EVM Testnet (change if needed)
+const RECIPIENT = '0xB7296cc1c96F861447790DA2295902349A63b169'; // jisko 1 token bhejna hai
+//const ERC20_TOKEN_ADDRESS = '0xYourToken';  // MODE='erc20' par required
+const FIXED_HUMAN_AMOUNT = '0.1';             // 1 token fixed
 /** ======================= */
 
 export default function BuyNowButton({ className }: { className?: string }) {
