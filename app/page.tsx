@@ -36,7 +36,7 @@ const AIRDROP_20 = (
 ) as `0x${string}`;
 
 // price-per-token in wei (matches your AbiLessAirdrop20.valuePerTokenWei default)
-const VALUE_PER_TOKEN_WEI = 1n;
+const VALUE_PER_TOKEN_WEI = BigInt(1);
 
 /* ----------------------------- UI helpers ----------------------------- */
 /* ------------------------------ Brand/UI ------------------------------ */
@@ -385,7 +385,7 @@ function HomeClient() {
       }
 
       const tokens = BigInt(Math.floor(Number(claimable) || 0));
-      if (tokens <= 0n) {
+      if (tokens <= BigInt(0)) {
         info("Nothing to claim.");
         return;
       }
