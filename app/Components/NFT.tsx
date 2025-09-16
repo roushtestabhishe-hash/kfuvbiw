@@ -7,19 +7,30 @@ import { FaArrowLeft, FaImage, FaCoins, FaFire, FaGem } from "react-icons/fa";
 import { TbHexagonLetterN } from "react-icons/tb";
 import BuyNowButton from "./BuyNowButton";
 
+// 🔌 wagmi for on-chain call
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
+// your minimal ABI file you created in app/abi/nftClaim.ts
+import { nftClaimAbi } from "@/app/abi/nftClaim";
+
 interface NFTProps {
   onBack: () => void;
 }
 
+// Contract address from env (or hardcode during testing)
+const NFT_CLAIM_CONTRACT =
+  (process.env.NEXT_PUBLIC_NFT_CLAIM_CONTRACT as `0x${string}`) ||
+  "0x0000000000000000000000000000000000000000";
+
 const NFT: React.FC<NFTProps> = ({ onBack }) => {
-  const [selectedTab, setSelectedTab] = useState<"collection" | "mint" | "marketplace">("collection");
+  const [selectedTab, setSelectedTab] =
+    useState<"collection" | "mint" | "marketplace">("collection");
 
   // 👉 Use files from /public/nft (e.g. /public/nft/001.png)
   const dummyNFTs = [
     { id: 1, name: "Kazar Champion #001", image: "/nft/breaker.png", rarity: "Legendary", price: "10 CAMP" },
-    { id: 2, name: "Game Master #042",   image: "/nft/climb.png", rarity: "Epic",      price: "10 CAMP" },
-    { id: 3, name: "Victory Badge #123",  image: "/nft/finder.png", rarity: "Rare",      price: "10 CAMP" },
-    { id: 4, name: "Warrior Spirit #567", image: "/nft/coder.png", rarity: "Common",    price: "10 CAMP" },
+    { id: 2, name: "Game Master #042",   image: "/nft/climb.png",   rarity: "Epic",      price: "10 CAMP" },
+    { id: 3, name: "Victory Badge #123",  image: "/nft/finder.png",  rarity: "Rare",      price: "10 CAMP" },
+    { id: 4, name: "Warrior Spirit #567", image: "/nft/coder.png",   rarity: "Common",    price: "10 CAMP" },
   ];
 
   const getRarityColor = (rarity: string) => {
@@ -36,6 +47,47 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
       {children}
     </div>
   );
+
+  // ------------------ chain wiring (minimal) ------------------
+  const { isConnected } = useAccount();
+  const { writeContractAsync } = useWriteContract();
+
+  // read global price (wei) from contract (0 if not set)
+  const { data: priceWei } = useReadContract({
+    address: NFT_CLAIM_CONTRACT,
+    abi: nftClaimAbi,
+    functionName: "priceWei",
+  });
+
+  const [mintingId, setMintingId] = useState<number | null>(null);
+
+  async function handleBuy(editionId: number) {
+    if (!isConnected) {
+      alert("Connect wallet first.");
+      return;
+    }
+    if (!NFT_CLAIM_CONTRACT || NFT_CLAIM_CONTRACT === "0x0000000000000000000000000000000000000000") {
+      alert("NFT contract address missing.");
+      return;
+    }
+    try {
+      setMintingId(editionId);
+      await writeContractAsync({
+        address: NFT_CLAIM_CONTRACT,
+        abi: nftClaimAbi,
+        functionName: "claim",        // claim(uint256 editionId)
+        args: [BigInt(editionId)],
+        value: (priceWei as bigint) ?? 0n,
+      });
+      alert("Mint submitted!");
+    } catch (err) {
+      console.error(err);
+      alert("Mint failed.");
+    } finally {
+      setMintingId(null);
+    }
+  }
+  // ------------------------------------------------------------
 
   return (
     <div className="space-y-6">
@@ -67,9 +119,9 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
       <NeuCard className="p-6">
         <div className="flex gap-4 mb-6">
           {[
-            { key: "collection", label: "Common", icon: FaGem },
-            { key: "mint",        label: "Mint NFTs",     icon: FaFire },
-            { key: "marketplace", label: "XBadges",       icon: FaCoins },
+            { key: "collection", label: "Common",      icon: FaGem },
+            { key: "mint",        label: "Mint NFTs",   icon: FaFire },
+            { key: "marketplace", label: "XBadges",     icon: FaCoins },
           ].map(({ key, label, icon: Icon }) => (
             <motion.button
               key={key}
@@ -198,9 +250,19 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
                         </div>
                         <span className="text-green-400 font-bold">{nft.price}</span>
                       </div>
-                      <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+
+                      {/* Wrap the existing button so we don't edit that component */}
+                      <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => handleBuy(nft.id)}
+                      >
                         <BuyNowButton className="mt-3 w-full" />
                       </motion.div>
+
+                      {mintingId === nft.id && (
+                        <div className="mt-2 text-xs text-zinc-400 text-center">Minting…</div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
