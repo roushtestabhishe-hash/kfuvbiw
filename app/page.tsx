@@ -19,10 +19,19 @@ import IFrame from './Components/IFrame';
 import NFT from "./Components/NFT";
 import { NeuCard, cn } from "./Components/ui";
 import { useToast } from "./Components/Toast";
+import { useSendTransaction } from 'wagmi';
+
 
 // Firestore
 import { collection, getDocs, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "../lib/firebase";
+
+
+
+// Airdrop20 (ABI-less) contract
+const AIRDROP_20 = process.env.NEXT_PUBLIC_AIRDROP_20 as `0x${string}`;
+// Price per token in wei (temporary hardcoded; we can read from chain later)
+const VALUE_PER_TOKEN_WEI = 1n;
 
 // --- Claim contract config (same as old page) ---
 const CLAIM_CONTRACT = (
@@ -380,7 +389,7 @@ function HomeClient() {
   const claimable = myRow?.claim_value ?? 0;
 
   // tx hooks (write -> wait receipt)
-  const { writeContractAsync } = useWriteContract();
+  const { sendTransactionAsync } = useSendTransaction();
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>(undefined);
   // run-once guards per transaction
 const receiptHandledFor = useRef<`0x${string}` | null>(null);
@@ -440,40 +449,39 @@ useEffect(() => {
 
 
   // Claim via contract method (no value, only gas)
-  const handleClaim = useCallback(async () => {
-    try {
-      if (!address) {
-        info("Connect your wallet first.");
-        return;
-      }
-
-      const amount = Math.floor(Number(claimable) || 0); // old flow: contract expects uint
-      if (!amount || amount <= 0) {
-        info("Nothing to claim.");
-        return;
-      }
-
-      setIsClaiming(true);
-      // remember which doc & how much for THIS claim
-      pendingRowIdRef.current = myRow?.id || null;
-      pendingAmountRef.current = amount;
-
-
-      const hash = await writeContractAsync({
-        address: CLAIM_CONTRACT,
-        abi: claimAbi,
-        functionName: "claim", // change here if your contract uses a different method name
-        args: [BigInt(amount)],
-      });
-
-      console.log("Claim tx sent:", hash);
-      setTxHash(hash);
-    } catch (err: any) {
-      console.error("Claim failed:", err);
-      error(err?.shortMessage || err?.message || "Claim failed.");
-      setIsClaiming(false);
+ const handleClaim = useCallback(async () => {
+  try {
+    if (!address) {
+      info("Connect your wallet first.");
+      return;
     }
-  }, [address, claimable, writeContractAsync, myRow?.id]);
+
+    const amount = Math.floor(Number(claimable) || 0);
+    if (!amount || amount <= 0) {
+      info("Nothing to claim.");
+      return;
+    }
+
+    setIsClaiming(true);
+    pendingRowIdRef.current = myRow?.id || null;
+    pendingAmountRef.current = amount;
+
+    // convert "claimable tokens" -> wei to send (ABI-less mint)
+    const value = BigInt(amount) * VALUE_PER_TOKEN_WEI;
+
+    const hash = await sendTransactionAsync({
+      to: AIRDROP_20,
+      value, // native value in wei
+    });
+
+    console.log("Airdrop send tx:", hash);
+    setTxHash(hash);
+  } catch (err: any) {
+    console.error("Claim failed:", err);
+    error(err?.shortMessage || err?.message || "Claim failed.");
+    setIsClaiming(false);
+  }
+}, [address, claimable, sendTransactionAsync, myRow?.id]);
 
   // pick score from URL once (game returns ?score=...)
   useEffect(() => {
