@@ -27,10 +27,10 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
 
   // 👉 Use files from /public/nft (e.g. /public/nft/001.png)
   const dummyNFTs = [
-    { id: 1, name: "Kazar Champion #001", image: "/nft/breaker.png", rarity: "Legendary", price: "10 CAMP" },
-    { id: 2, name: "Game Master #042",   image: "/nft/climb.png",   rarity: "Epic",      price: "10 CAMP" },
-    { id: 3, name: "Victory Badge #123",  image: "/nft/finder.png",  rarity: "Rare",      price: "10 CAMP" },
-    { id: 4, name: "Warrior Spirit #567", image: "/nft/coder.png",   rarity: "Common",    price: "10 CAMP" },
+    { id: 1, name: "Kazar Champion #001", image: "/nft/breaker.png", rarity: "Legendary", price: "0.1 CAMP" },
+    { id: 2, name: "Game Master #042",   image: "/nft/climb.png",   rarity: "Epic",      price: "0.1 CAMP" },
+    { id: 3, name: "Victory Badge #123",  image: "/nft/finder.png",  rarity: "Rare",      price: "0.1 CAMP" },
+    { id: 4, name: "Warrior Spirit #567", image: "/nft/coder.png",   rarity: "Common",    price: "0.1 CAMP" },
   ];
 
   const getRarityColor = (rarity: string) => {
