@@ -29,14 +29,14 @@ import { db } from "../lib/firebase";
 
 
 // Airdrop20 (ABI-less) contract
-const AIRDROP_20 = process.env.NEXT_PUBLIC_AIRDROP_20 as `0x${string}`;
+const AIRDROP_20 = process.env.NEXT_PUBLIC_CLAIM_CONTRACT as `0x${string}`;
 // Price per token in wei (temporary hardcoded; we can read from chain later)
 const VALUE_PER_TOKEN_WEI = 1n;
 
 // --- Claim contract config (same as old page) ---
-const CLAIM_CONTRACT = (
-  process.env.NEXT_PUBLIC_CLAIM_CONTRACT ||
-  "0x5D1e186A8f7D26771d6791E6B232DD4A2Ad7d72d"
+//const CLAIM_CONTRACT = (
+ // process.env.NEXT_PUBLIC_CLAIM_CONTRACT ||
+ // "0x5D1e186A8f7D26771d6791E6B232DD4A2Ad7d72d"
 ) as `0x${string}`;
 
 // minimal ABI: claim(uint256 amount)
