@@ -10,7 +10,7 @@ import BuyNowButton from "./BuyNowButton";
 // 🔌 wagmi for on-chain call
 import { useAccount, useReadContract, useWriteContract } from "wagmi";
 // your minimal ABI file you created in app/abi/nftClaim.ts
-import { nftClaimAbi } from "../app/ABI/nftClaim";
+import { nftClaimAbi } from "../ABI/nftClaim";
 
 interface NFTProps {
   onBack: () => void;
