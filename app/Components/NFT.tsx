@@ -77,7 +77,7 @@ const NFT: React.FC<NFTProps> = ({ onBack }) => {
         abi: nftClaimAbi,
         functionName: "claim",        // claim(uint256 editionId)
         args: [BigInt(editionId)],
-        value: (priceWei as bigint) ?? 0n,
+        value: (priceWei as bigint | undefined) ?? BigInt(0),
       });
       alert("Mint submitted!");
     } catch (err) {
