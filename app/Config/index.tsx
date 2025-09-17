@@ -4,11 +4,11 @@ import { defineChain, http } from "viem";
 import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKitNetwork } from "@reown/appkit/networks";
+import type { CreateConnectorFn } from "wagmi";
+import { QueryClient } from "@tanstack/react-query";
+
 import { paraConnector } from "@getpara/wagmi-v2-integration";
 import { para } from "@/app/lib/para/client";
-import type { CreateConnectorFn } from "wagmi";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { WagmiConfig } from "wagmi";
 
 /** ---------- CAMP MAINNET ---------- */
 export const campMainnet = defineChain({
@@ -35,23 +35,25 @@ export const chains = [campMainnet] as const;
 
 /** WalletConnect Project ID */
 export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
-if (!projectId) throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
+if (!projectId) {
+  throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
+}
 
-/** React Query */
+/** React Query client (shared) */
 export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000 } },
 });
 
-/** WC Metadata (must match your real domain) */
+/** WC Metadata (use your real production domain) */
 const metadata = {
   name: "KAZAR Games",
   description: "KAZAR on Camp Network",
   url: "https://camp.metakraft.live",
-  icons: ["https://avatars.githubusercontent.com/u/179229932"], // any https icon
+  icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
-/** Para connector for wagmi v2 */
-const connector = paraConnector({
+/** Para (Passkey/Social) connector for wagmi v2 */
+const paraWagmiConnector = paraConnector({
   para,
   chains: [...chains],
   appName: "KAZAR",
@@ -77,20 +79,20 @@ const connector = paraConnector({
   options: {},
 });
 
-const connectors: CreateConnectorFn[] = [connector as CreateConnectorFn];
+const connectors: CreateConnectorFn[] = [paraWagmiConnector as CreateConnectorFn];
 
 /** Wagmi adapter (locks RPC to CAMP) */
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
-  networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
   projectId,
+  networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
   connectors,
   transports: {
     [campMainnet.id]: http(campMainnet.rpcUrls.default.http[0]),
   },
 });
 
-/** AppKit init (modal etc.) */
+/** AppKit init (modal) */
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
@@ -108,11 +110,5 @@ export const appKit = createAppKit({
   allowUnsupportedChain: false,
 });
 
-/** ---------- Providers wrapper (DEFAULT EXPORT) ---------- */
-export default function Providers({ children }: { children: React.ReactNode }) {
-  return (
-    <WagmiConfig config={wagmiAdapter.wagmiConfig}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </WagmiConfig>
-  );
-}
+// ⛔️ No default Providers export here.
+// App-level providers live in app/Components/AppWrapper.tsx
