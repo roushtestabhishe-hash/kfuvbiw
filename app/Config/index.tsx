@@ -11,7 +11,7 @@ import { QueryClient } from "@tanstack/react-query";
 
 /** ---------- CAMP MAINNET (Basecamp) ---------- */
 export const campMainnet = defineChain({
-  id: 484, // ✅ official mainnet
+  id: 484,
   name: "Camp Mainnet",
   network: "camp-mainnet",
   nativeCurrency: { name: "Camp", symbol: "CAMP", decimals: 18 },
@@ -33,22 +33,22 @@ export const campMainnet = defineChain({
 /** Networks visible in AppKit modal */
 export const chains = [campMainnet] as const;
 
-/** WalletConnect Project ID (set in env for prod) */
+/** WalletConnect Project ID */
 export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
 if (!projectId) {
   throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
 }
 
-/** React Query client */
-const queryClient = new QueryClient({
+/** React Query client (exported so Providers can use it) */
+export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60 * 1000 } },
 });
 
-/** Metadata (set your real domain here to avoid WC redirect warning) */
+/** App / Wallet metadata */
 const metadata = {
   name: "Reown AppKit Example",
   description: "Reown AppKit with Next.js and Wagmi",
-  url: "https://camp.metakraft.live", // ← change if your deployed URL differs
+  url: "https://camp.metakraft.live",
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
