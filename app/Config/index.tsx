@@ -5,11 +5,12 @@ import { createAppKit } from "@reown/appkit/react";
 import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
 import type { AppKitNetwork } from "@reown/appkit/networks";
 import { paraConnector } from "@getpara/wagmi-v2-integration";
-import { para } from "../lib/para/client";
+import { para } from "@/app/lib/para/client";
 import type { CreateConnectorFn } from "wagmi";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { WagmiConfig } from "wagmi";
 
-/** ---------- CAMP MAINNET (Basecamp) ---------- */
+/** ---------- CAMP MAINNET ---------- */
 export const campMainnet = defineChain({
   id: 484,
   name: "Camp Mainnet",
@@ -30,33 +31,30 @@ export const campMainnet = defineChain({
   },
 } as const);
 
-/** Networks visible in AppKit modal */
 export const chains = [campMainnet] as const;
 
 /** WalletConnect Project ID */
 export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
-if (!projectId) {
-  throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
-}
+if (!projectId) throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
 
-/** React Query client (exported so Providers can use it) */
+/** React Query */
 export const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60 * 1000 } },
+  defaultOptions: { queries: { staleTime: 60_000 } },
 });
 
-/** App / Wallet metadata */
+/** WC Metadata (must match your real domain) */
 const metadata = {
-  name: "Reown AppKit Example",
-  description: "Reown AppKit with Next.js and Wagmi",
+  name: "KAZAR Games",
+  description: "KAZAR on Camp Network",
   url: "https://camp.metakraft.live",
-  icons: ["https://avatars.githubusercontent.com/u/179229932"],
+  icons: ["https://avatars.githubusercontent.com/u/179229932"], // any https icon
 };
 
-/** Para connector (wagmi v2) */
+/** Para connector for wagmi v2 */
 const connector = paraConnector({
   para,
   chains: [...chains],
-  appName: "Reown AppKit with Para",
+  appName: "KAZAR",
   logo: "/para.svg",
   queryClient,
   oAuthMethods: ["GOOGLE", "TWITTER"],
@@ -81,7 +79,7 @@ const connector = paraConnector({
 
 const connectors: CreateConnectorFn[] = [connector as CreateConnectorFn];
 
-/** Wagmi adapter + RPC transports (locked to CAMP RPC) */
+/** Wagmi adapter (locks RPC to CAMP) */
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
@@ -92,7 +90,7 @@ export const wagmiAdapter = new WagmiAdapter({
   },
 });
 
-/** AppKit init */
+/** AppKit init (modal etc.) */
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
@@ -109,3 +107,12 @@ export const appKit = createAppKit({
   enableCoinbase: false,
   allowUnsupportedChain: false,
 });
+
+/** ---------- Providers wrapper (DEFAULT EXPORT) ---------- */
+export default function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <WagmiConfig config={wagmiAdapter.wagmiConfig}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </WagmiConfig>
+  );
+}
