@@ -48,7 +48,7 @@ const queryClient = new QueryClient({
 const metadata = {
   name: "Reown AppKit Example",
   description: "Reown AppKit with Next.js and Wagmi",
-  url: "https://x313vita.vercel.app", // ← change if your deployed URL differs
+  url: "https://camp.metakraft.live", // ← change if your deployed URL differs
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
