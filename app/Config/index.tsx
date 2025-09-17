@@ -90,6 +90,10 @@ export const wagmiAdapter = new WagmiAdapter({
   transports: {
     [campMainnet.id]: http(campMainnet.rpcUrls.default.http[0]),
   },
+
+  // 👇 this helps Rabby/OKX/Bitget etc.
+  multiInjectedProviderDiscovery: true,
+  
 });
 
 /** AppKit init (modal) */
