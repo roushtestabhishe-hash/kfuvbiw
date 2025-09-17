@@ -7,4 +7,4 @@ if (!API_KEY) {
   throw new Error("API key is not defined. Please set NEXT_PUBLIC_PARA_API_KEY in your environment variables.");
 }
 
-export const para = new ParaWeb(Environment.PROD, API_KEY);
+export const para = new ParaWeb(Environment.PRODUCTION, API_KEY);
