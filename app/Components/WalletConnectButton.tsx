@@ -1,21 +1,35 @@
-// app/Components/WalletConnectButton.tsx
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAccount } from 'wagmi';
-import { AppKitButton } from '@reown/appkit/react';
+import { useAppKit } from '@reown/appkit/react';
 
 function shortAddr(a?: string) {
-  return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
+  return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : 'Connect Wallet';
 }
 
 export default function ConnectButton() {
   const { address } = useAccount();
-  const label = useMemo(() => (address ? shortAddr(address) : 'Connect Wallet'), [address]);
+  const { open, isOpen } = useAppKit();
+
+  const label = useMemo(() => shortAddr(address), [address]);
+
+  // --- single-flight guard to prevent double requests ---
+  const busy = useRef(false);
+  const handleClick = useCallback(async () => {
+    if (busy.current || isOpen) return; // prevent parallel opens
+    busy.current = true;
+    try {
+      await open({ view: 'Connect' });
+    } finally {
+      // give extension a moment to settle; avoids “previous request active”
+      setTimeout(() => { busy.current = false; }, 300);
+    }
+  }, [open, isOpen]);
 
   // --- keep your existing persistence logic unchanged ---
   useEffect(() => {
-    const saveWalletConnection = async () => {
+    const run = async () => {
       if (!address) return;
       try {
         const res = await fetch('/api/wallet-connection', {
@@ -29,7 +43,7 @@ export default function ConnectButton() {
         console.error('Error saving wallet connection:', e);
       }
     };
-    saveWalletConnection();
+    run();
   }, [address]);
 
   return (
@@ -44,62 +58,38 @@ export default function ConnectButton() {
       />
 
       {/* Gradient border + glass panel */}
-      <div
+      <button
+        onClick={handleClick}
         className="relative rounded-[24px] p-[2px]
                    bg-[conic-gradient(at_20%_-10%,#fb923c,#f59e0b,#f97316,#fb923c)]
                    shadow-[0_12px_40px_rgba(251,146,60,0.35)]
-                   hover:shadow-[0_20px_70px_rgba(251,146,60,0.6)] transition"
+                   hover:shadow-[0_20px_70px_rgba(251,146,60,0.6)] transition
+                   focus:outline-none focus:ring-2 focus:ring-amber-300/60"
+        disabled={busy.current || isOpen}
       >
         <div className="relative rounded-[22px] overflow-hidden backdrop-blur-xl">
-          {/* glossy top stripe */}
           <span
             aria-hidden
             className="pointer-events-none absolute left-2 right-2 top-0 h-[58%] rounded-t-[22px]
                        bg-white/25 blur-[10px] opacity-80"
           />
-          {/* warm internal gradient */}
           <span
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-[22px]
                        bg-gradient-to-br from-orange-400/70 via-amber-300/60 to-yellow-300/70"
           />
-          {/* subtle blobs */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -left-8 -top-6 h-16 w-20 bg-orange-400/40 blur-2xl rounded-full"
-          />
-          <span
-            aria-hidden
-            className="pointer-events-none absolute -right-6 -bottom-6 h-16 w-20 bg-amber-300/40 blur-2xl rounded-full"
-          />
+          <span aria-hidden className="pointer-events-none absolute -left-8 -top-6 h-16 w-20 bg-orange-400/40 blur-2xl rounded-full" />
+          <span aria-hidden className="pointer-events-none absolute -right-6 -bottom-6 h-16 w-20 bg-amber-300/40 blur-2xl rounded-full" />
 
-          {/* Visible label (our glass UI) */}
           <div
             className="relative z-10 px-5 py-3 text-white text-sm font-semibold
                        drop-shadow-[0_0_10px_rgba(251,189,35,0.85)] select-none text-center"
-            aria-hidden // prevent duplicate focus text; AppKit handles accessibility
           >
             {label}
           </div>
-
-          {/* Invisible AppKit button overlay — handles all clicks/keyboard */}
-          <div className="absolute inset-0 z-20">
-            <AppKitButton
-              // Make AppKit’s host fill this container and be visually hidden
-              style={{
-                opacity: 0,
-                width: '100%',
-                height: '100%',
-                display: 'block',
-                // keep it focusable & clickable
-                cursor: 'pointer',
-              }}
-            />
-          </div>
         </div>
-      </div>
+      </button>
 
-      {/* bottom reflection */}
       <span
         aria-hidden
         className="pointer-events-none absolute -bottom-2 left-6 right-6 h-5 blur-xl rounded-full opacity-70 bg-orange-400/45"
