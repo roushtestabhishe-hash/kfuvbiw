@@ -1,118 +1,51 @@
-"use client";
+// app/Config/index.ts
+'use client';
 
-import { defineChain, http } from "viem";
-import { createAppKit } from "@reown/appkit/react";
-import { WagmiAdapter } from "@reown/appkit-adapter-wagmi";
-import type { AppKitNetwork } from "@reown/appkit/networks";
-import type { CreateConnectorFn } from "wagmi";
-import { QueryClient } from "@tanstack/react-query";
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { http, cookieStorage, createStorage } from 'wagmi';
+import { injected } from 'wagmi/connectors';
+import { campMainnet } from './chains'; // tumhara 484 chain export
+import { createAppKit } from '@reown/appkit/react';
 
-import { paraConnector } from "@getpara/wagmi-v2-integration";
-import { para } from "@/app/lib/para/client";
+// ---- ENV ----
+export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!;
 
-/** ---------- CAMP MAINNET ---------- */
-export const campMainnet = defineChain({
-  id: 484,
-  name: "Camp Mainnet",
-  network: "camp-mainnet",
-  nativeCurrency: { name: "Camp", symbol: "CAMP", decimals: 18 },
-  rpcUrls: {
-    default: {
-      http: ["https://rpc.camp.raas.gelato.cloud"],
-      webSocket: ["wss://ws.camp.raas.gelato.cloud"],
-    },
-    public: {
-      http: ["https://rpc.camp.raas.gelato.cloud"],
-      webSocket: ["wss://ws.camp.raas.gelato.cloud"],
-    },
-  },
-  blockExplorers: {
-    default: { name: "Blockscout", url: "https://camp.cloud.blockscout.com/" },
-  },
-} as const);
+// ✅ Singletons (do not recreate on re-renders)
+export const connectors = [
+  injected({
+    shimDisconnect: true,        // <-- IMPORTANT
+  }),
+];
 
-export const chains = [campMainnet] as const;
-
-/** WalletConnect Project ID */
-export const projectId = process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID;
-if (!projectId) {
-  throw new Error("NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID is not set");
-}
-
-/** React Query client (shared) */
-export const queryClient = new QueryClient({
-  defaultOptions: { queries: { staleTime: 60_000 } },
-});
-
-/** WC Metadata (use your real production domain) */
-const metadata = {
-  name: "KAZAR Games",
-  description: "KAZAR on Camp Network",
-  url: "https://camp.metakraft.live",
-  icons: ["https://avatars.githubusercontent.com/u/179229932"],
-};
-
-/** Para (Passkey/Social) connector for wagmi v2 */
-const paraWagmiConnector = paraConnector({
-  para,
-  chains: [...chains],
-  appName: "KAZAR",
-  logo: "/para.svg",
-  queryClient,
-  oAuthMethods: ["GOOGLE", "TWITTER"],
-  theme: {
-    foregroundColor: "#2D3648",
-    backgroundColor: "#FFFFFF",
-    accentColor: "#0066CC",
-    darkForegroundColor: "#E8EBF2",
-    darkBackgroundColor: "#1A1F2B",
-    darkAccentColor: "#4D9FFF",
-    mode: "light",
-    borderRadius: "none" as const,
-    font: "Inter",
-  },
-  onRampTestMode: true,
-  disableEmailLogin: false,
-  disablePhoneLogin: false,
-  authLayout: ["AUTH:FULL"],
-  recoverySecretStepEnabled: true,
-  options: {},
-});
-
-const connectors: CreateConnectorFn[] = [paraWagmiConnector as CreateConnectorFn];
-
-/** Wagmi adapter (locks RPC to CAMP) */
 export const wagmiAdapter = new WagmiAdapter({
   ssr: true,
   projectId,
-  networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
+  networks: [campMainnet],
   connectors,
   transports: {
     [campMainnet.id]: http(campMainnet.rpcUrls.default.http[0]),
   },
-
-  // 👇 this helps Rabby/OKX/Bitget etc.
-  multiInjectedProviderDiscovery: true,
-  
+  multiInjectedProviderDiscovery: true,  // <-- IMPORTANT
+  // Optional: make sure wagmi state survives properly
+  storage: createStorage({
+    storage: typeof window !== 'undefined' ? window.localStorage : cookieStorage,
+  }),
+  // autoConnect true helps after refresh
+  autoConnect: true,
 });
 
-/** AppKit init (modal) */
-export const appKit = createAppKit({
-  adapters: [wagmiAdapter],
-  networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
-  projectId,
-  metadata,
-  features: {
-    analytics: true,
-    email: false,
-    socials: false,
-    emailShowWallets: false,
-  },
-  themeMode: "light",
-  enableInjected: true,
-  enableCoinbase: false,
-  allowUnsupportedChain: false,
-});
+// ---- Reown AppKit init — only once ----
+let _appKitInited = false;
+if (!_appKitInited) {
+  createAppKit({
+    adapters: [wagmiAdapter],
+    networks: [campMainnet],
+    projectId,
+    enableInjected: true,
+    // (baaki options jo pehle the wo rakh sakte ho)
+  });
+  _appKitInited = true;
+}
 
-// ⛔️ No default Providers export here.
-// App-level providers live in app/Components/AppWrapper.tsx
+// (export queryClient singleton agar use kar rahe ho)
+export { queryClient } from './queryClient';
