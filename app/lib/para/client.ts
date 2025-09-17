@@ -1,7 +1,7 @@
 import { Environment, ParaWeb } from "@getpara/react-sdk";
 
 const API_KEY = process.env.NEXT_PUBLIC_PARA_API_KEY;
-const ENVIRONMENT = Environment.DEVELOPMENT;
+const ENVIRONMENT = Environment.PRODUCTION;
 
 if (!API_KEY) {
   throw new Error(
