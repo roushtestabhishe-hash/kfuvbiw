@@ -10,6 +10,9 @@ import { QueryClient } from "@tanstack/react-query";
 import { paraConnector } from "@getpara/wagmi-v2-integration";
 import { para } from "@/app/lib/para/client";
 
+/** ✅ NEW: add wagmi injected connectors (no UI change by itself) */
+import { injected } from "wagmi/connectors";
+
 /** ---------- CAMP MAINNET ---------- */
 export const campMainnet = defineChain({
   id: 484,
@@ -79,7 +82,17 @@ const paraWagmiConnector = paraConnector({
   options: {},
 });
 
-const connectors: CreateConnectorFn[] = [paraWagmiConnector as CreateConnectorFn];
+/**
+ * ✅ FINAL connectors list:
+ * - Keep PARA (Reown flow) exactly as-is
+ * - Add injected connectors so MetaMask/Rabby are available to wagmi
+ *   (we’ll expose these via a separate RainbowKit button)
+ */
+const connectors: CreateConnectorFn[] = [
+  paraWagmiConnector as CreateConnectorFn,
+  injected({ target: "metaMask" }),
+  injected({ target: "rabby" }),
+];
 
 /** Wagmi adapter (locks RPC to CAMP) */
 export const wagmiAdapter = new WagmiAdapter({
@@ -92,7 +105,12 @@ export const wagmiAdapter = new WagmiAdapter({
   },
 });
 
-/** AppKit init (modal) */
+/** AppKit init (modal)
+ *  ✅ Note: we explicitly disable AppKit’s injected UI
+ *  to avoid the recent instability. Injected wallets will be offered
+ *  through a separate RainbowKit button (next step), while this modal
+ *  stays focused on Para/social.
+ */
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
@@ -105,7 +123,7 @@ export const appKit = createAppKit({
     emailShowWallets: false,
   },
   themeMode: "light",
-  enableInjected: true,
+  enableInjected: false, // ⬅️ was true: keep AppKit clean/stable
   enableCoinbase: false,
   allowUnsupportedChain: false,
 });
