@@ -91,7 +91,6 @@ const paraWagmiConnector = paraConnector({
 const connectors: CreateConnectorFn[] = [
   paraWagmiConnector as CreateConnectorFn,
   injected({ target: "metaMask" }),
-  injected({ target: "rabby" }),
 ];
 
 /** Wagmi adapter (locks RPC to CAMP) */
