@@ -10,7 +10,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { paraConnector } from "@getpara/wagmi-v2-integration";
 import { para } from "@/app/lib/para/client";
 
-/** ✅ NEW: add wagmi injected connectors (no UI change by itself) */
+/** Injected connector (MetaMask) */
 import { injected } from "wagmi/connectors";
 
 /** ---------- CAMP MAINNET ---------- */
@@ -47,11 +47,15 @@ export const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 60_000 } },
 });
 
-/** WC Metadata (use your real production domain) */
+/** WC Metadata: point to your deployed URL (preview/prod) */
+const siteUrl =
+  process.env.NEXT_PUBLIC_APP_URL /* set this on Vercel later */ ??
+  "https://bhaigazzab.vercel.app";
+
 const metadata = {
   name: "KAZAR Games",
   description: "KAZAR on Camp Network",
-  url: "https://camp.metakraft.live",
+  url: siteUrl,
   icons: ["https://avatars.githubusercontent.com/u/179229932"],
 };
 
@@ -82,15 +86,13 @@ const paraWagmiConnector = paraConnector({
   options: {},
 });
 
-/**
- * ✅ FINAL connectors list:
- * - Keep PARA (Reown flow) exactly as-is
- * - Add injected connectors so MetaMask/Rabby are available to wagmi
- *   (we’ll expose these via a separate RainbowKit button)
+/** Final connectors:
+ *  - Para for AppKit (Reown)
+ *  - MetaMask injected (hardened)
  */
 const connectors: CreateConnectorFn[] = [
   paraWagmiConnector as CreateConnectorFn,
-  injected({ target: "metaMask" }),
+  injected({ target: "metaMask", shimDisconnect: true }),
 ];
 
 /** Wagmi adapter (locks RPC to CAMP) */
@@ -104,12 +106,7 @@ export const wagmiAdapter = new WagmiAdapter({
   },
 });
 
-/** AppKit init (modal)
- *  ✅ Note: we explicitly disable AppKit’s injected UI
- *  to avoid the recent instability. Injected wallets will be offered
- *  through a separate RainbowKit button (next step), while this modal
- *  stays focused on Para/social.
- */
+/** AppKit (Reown) init */
 export const appKit = createAppKit({
   adapters: [wagmiAdapter],
   networks: [...chains] as [AppKitNetwork, ...AppKitNetwork[]],
@@ -122,10 +119,9 @@ export const appKit = createAppKit({
     emailShowWallets: false,
   },
   themeMode: "light",
-  enableInjected: false, // ⬅️ was true: keep AppKit clean/stable
+  enableInjected: false,      // keep AppKit modal focused on Para
   enableCoinbase: false,
-  allowUnsupportedChain: false,
+  allowUnsupportedChain: true // <-- let first connect succeed; we switch to 484 in the bridge
 });
 
-// ⛔️ No default Providers export here.
-// App-level providers live in app/Components/AppWrapper.tsx
+// Providers live in app/Components/AppWrapper.tsx
