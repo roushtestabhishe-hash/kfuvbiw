@@ -44,10 +44,12 @@ export default function ParaLoginButton() {
       });
 
       // ✅ pass the CreateConnectorFn directly to wagmi connect
-      await connect(wagmiAdapter.wagmiConfig, {
-        connector: createFn,
-        chainId: campMainnet.id,
-      });
+// ✅ pass the CreateConnectorFn directly, but cast to satisfy TS generics
+await connect(wagmiAdapter.wagmiConfig as any, {
+  connector: createFn as any,
+  chainId: campMainnet.id,
+});
+
     } catch (err) {
       console.error('Para login failed:', err);
     } finally {
