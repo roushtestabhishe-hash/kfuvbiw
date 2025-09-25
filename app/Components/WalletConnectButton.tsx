@@ -1,19 +1,48 @@
 // app/Components/WalletConnectButton.tsx
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { AppKitButton } from '@reown/appkit/react';
+import { useAppKit } from '@reown/appkit/react';
+import { getAccount, disconnect } from '@wagmi/core';
+import { wagmiAdapter } from '@/app/Config';
 
 function shortAddr(a?: string) {
   return a ? `${a.slice(0, 6)}…${a.slice(-4)}` : '';
 }
 
+// — helpers to detect & clean Para session —
+function hasParaSession() {
+  if (typeof window === 'undefined') return false;
+  try {
+    return !!(localStorage.getItem('para:session') || localStorage.getItem('para:user'));
+  } catch {
+    return false;
+  }
+}
+
+async function forceParaLogout() {
+  try {
+    const { para } = await import('@/app/lib/para/client');
+    await para.logout().catch(() => {}); // safe even if not logged in
+  } catch {
+    // ignore
+  } finally {
+    try {
+      localStorage.removeItem('para:session');
+      localStorage.removeItem('para:user');
+    } catch {}
+  }
+}
+
 export default function ConnectButton() {
   const { address } = useAccount();
+  const appKit = useAppKit();
+  const [busy, setBusy] = useState(false);
+
   const label = useMemo(() => (address ? shortAddr(address) : 'Connect Wallet'), [address]);
 
-  // --- persistence logic ---
+  // --- persistence logic (unchanged) ---
   useEffect(() => {
     const saveWalletConnection = async () => {
       if (!address) return;
@@ -32,6 +61,36 @@ export default function ConnectButton() {
     saveWalletConnection();
   }, [address]);
 
+  const openReownSafely = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const acct = getAccount(wagmiAdapter.wagmiConfig);
+      const activeId = (acct.connector?.id || '').toLowerCase();
+
+      // If Para session is present but we’re switching to a browser wallet via Reown,
+      // clean Para first so connectors don't kick each other.
+      if (hasParaSession() && activeId !== 'para') {
+        const ok = window.confirm(
+          'You are signed in with Para (email/social). To connect a browser wallet, ' +
+          'we will sign you out of Para. Continue?'
+        );
+        if (!ok) return;
+
+        if (acct.isConnected && activeId === 'para') {
+          // defensive: disconnect wagmi if it thinks Para is active
+          await disconnect(wagmiAdapter.wagmiConfig).catch(() => {});
+        }
+        await forceParaLogout();
+      }
+
+      // Now open Reown cleanly
+      appKit.open();
+    } finally {
+      setBusy(false);
+    }
+  };
+
   return (
     <div className="relative inline-block">
       {/* Outer warm aura */}
@@ -44,11 +103,16 @@ export default function ConnectButton() {
       />
 
       {/* Gradient border + glass panel */}
-      <div
+      <button
+        type="button"
+        onClick={openReownSafely}
+        disabled={busy}
         className="relative rounded-[24px] p-[2px]
                    bg-[conic-gradient(at_20%_-10%,#fb923c,#f59e0b,#f97316,#fb923c)]
                    shadow-[0_12px_40px_rgba(251,146,60,0.35)]
-                   hover:shadow-[0_20px_70px_rgba(251,146,60,0.6)] transition"
+                   hover:shadow-[0_20px_70px_rgba(251,146,60,0.6)] transition
+                   outline-none focus:ring-2 focus:ring-amber-300/70"
+        aria-busy={busy}
       >
         <div className="relative rounded-[22px] overflow-hidden backdrop-blur-xl">
           {/* glossy top stripe */}
@@ -73,31 +137,15 @@ export default function ConnectButton() {
             className="pointer-events-none absolute -right-6 -bottom-6 h-16 w-20 bg-amber-300/40 blur-2xl rounded-full"
           />
 
-          {/* Visible label (our glass UI) */}
+          {/* Visible label */}
           <div
             className="relative z-10 px-5 py-3 text-white text-sm font-semibold
                        drop-shadow-[0_0_10px_rgba(251,189,35,0.85)] select-none text-center"
-            aria-hidden // prevent duplicate focus text; AppKit handles accessibility
           >
-            {label}
-          </div>
-
-          {/* Invisible AppKit button overlay — handles all clicks/keyboard */}
-          <div className="absolute inset-0 z-20">
-            <AppKitButton
-              // Make AppKit’s host fill this container and be visually hidden
-              style={{
-                opacity: 0,
-                width: '100%',
-                height: '100%',
-                display: 'block',
-                // keep it focusable & clickable
-                cursor: 'pointer',
-              }}
-            />
+            {busy ? 'Opening…' : label}
           </div>
         </div>
-      </div>
+      </button>
 
       {/* bottom reflection */}
       <span
