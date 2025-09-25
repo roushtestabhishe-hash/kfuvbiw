@@ -36,7 +36,7 @@ const AIRDROP_20 = (
 ) as `0x${string}`;
 
 // price-per-token in wei (matches your AbiLessAirdrop20.valuePerTokenWei default)
-const VALUE_PER_TOKEN_WEI = BigInt(1000000000000000);
+const VALUE_PER_TOKEN_WEI = BigInt(1);
 
 /* ----------------------------- UI helpers ----------------------------- */
 /* ------------------------------ Brand/UI ------------------------------ */
