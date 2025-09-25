@@ -490,9 +490,9 @@ function HomeClient() {
                   <div className="mt-6">
                     <NeuCard className="p-5 md:p-6 bg-zinc-900/70">
                       <div className="text-xl md:text-2xl font-semibold text-zinc-50">
-                        <p className="mb-2">Hello 👋</p>
+                        <p className="mb-2">Hello Campers 👋</p>
                         <p className="text-sm md:text-base text-zinc-400">
-                          Collect and claim prizes & badges by playing games and completing quests.
+                          Connect your Para Wallet, play games, complete quests, and claim exciting prizes and badges!
                         </p>
                       </div>
                     </NeuCard>
