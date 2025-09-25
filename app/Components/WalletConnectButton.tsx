@@ -13,7 +13,7 @@ export default function ConnectButton() {
   const { address } = useAccount();
   const label = useMemo(() => (address ? shortAddr(address) : 'Connect Wallet'), [address]);
 
-  // --- keep your existing persistence logic unchanged ---
+  // --- persistence logic ---
   useEffect(() => {
     const saveWalletConnection = async () => {
       if (!address) return;
