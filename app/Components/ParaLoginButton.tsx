@@ -10,13 +10,13 @@ export default function ParaLoginButton() {
   const onClick = async () => {
     setLoading(true);
     try {
-      // Lazy load Para pieces only now
+      // Lazy-load only on click
       const [{ para }, { paraConnector }] = await Promise.all([
         import('@/app/lib/para/client'),
         import('@getpara/wagmi-v2-integration'),
       ]);
 
-      // Build a wagmi connector instance for Para on the fly
+      // Build a CreateConnectorFn for Para
       const createFn = paraConnector({
         para,
         chains: [...chains],
@@ -43,12 +43,9 @@ export default function ParaLoginButton() {
         },
       });
 
-      // Turn CreateConnectorFn into a concrete Connector bound to current wagmi config
-      const connector = createFn(wagmiAdapter.wagmiConfig as any);
-
-      // Connect and (optionally) request Camp chain
+      // ✅ pass the CreateConnectorFn directly to wagmi connect
       await connect(wagmiAdapter.wagmiConfig, {
-        connector,
+        connector: createFn,
         chainId: campMainnet.id,
       });
     } catch (err) {
