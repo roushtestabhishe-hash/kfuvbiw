@@ -270,7 +270,7 @@ const ProTipWidget = () => (
       <p className="text-sm text-zinc-400">Pro tip</p>
     </div>
     <p className="text-sm text-zinc-300">
-      Connect your wallet to unlock quests, claim rewards, and appear on the leaderboard.
+      Connect your wallet to start quests, refresh to claim rewards, and mint the badge to finish.
     </p>
   </NeuCard>
 );
