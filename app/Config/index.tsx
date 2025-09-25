@@ -121,7 +121,7 @@ export const appKit = createAppKit({
   themeMode: "light",
   enableInjected: false,      // keep AppKit modal focused on Para
   enableCoinbase: false,
-  allowUnsupportedChain: true // <-- let first connect succeed; we switch to 484 in the bridge
+  allowUnsupportedChain: true // let first connect succeed; we switch to 484 in the bridge
 });
 
 // Providers live in app/Components/AppWrapper.tsx
