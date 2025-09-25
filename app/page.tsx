@@ -15,6 +15,7 @@ import { GiMusicalNotes, GiBlackHoleBolas } from "react-icons/gi";
 import { motion, AnimatePresence } from "framer-motion";
 import gsap from "gsap";
 import ConnectButton from "./Components/WalletConnectButton";
+import ParaLoginButton from "@/app/Components/ParaLoginButton";
 import IFrame from "./Components/IFrame";
 import NFT from "./Components/NFT";
 import { NeuCard, cn } from "./Components/ui";
@@ -502,6 +503,12 @@ function HomeClient() {
                     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                       <ConnectButton />
                     </motion.div>
+
+  {/* NEW: Para email/social login (lazy) */}
+  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+    <ParaLoginButton />
+  </motion.div>
+                    
                   </div>
                 </NeuCard>
 
