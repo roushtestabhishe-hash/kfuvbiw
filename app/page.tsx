@@ -56,7 +56,7 @@ const BrandKazar: React.FC = () => {
   );
 };
 
-const Navbar: React.FC = () => {
+const Navbar: React.FC = () => (
   <div className="sticky top-0 z-40 w-full">
     <div className="relative h-[72px]">
       {/* shaped panel */}
@@ -97,7 +97,6 @@ const Navbar: React.FC = () => {
           <div className="hidden md:grid place-items-center h-7 w-28 rounded-full bg-gradient-to-r from-amber-400/15 to-yellow-400/15 ring-1 ring-amber-400/25 text-[10px] font-semibold tracking-wider text-amber-200/85 backdrop-blur-sm">
             CAMP
           </div>
-          
           <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
             <ConnectButton />
           </div>
@@ -602,6 +601,8 @@ function HomeClient() {
       </div>
 
       <Navbar />
+      <SidebarNav currentView={currentView} onViewChange={setCurrentView} />
+
       <main className="mx-auto max-w-6xl w-full px-4 md:px-6 py-12 md:pl-24 pb-24 md:pb-12">
         {renderMainContent()}
       </main>
