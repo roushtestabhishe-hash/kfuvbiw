@@ -1,4 +1,3 @@
-// app/Components/WalletConnectButton.tsx
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
@@ -25,22 +24,22 @@ export default function ConnectButton() {
 
   async function softResetForReown() {
     try {
-      // 1) If the last live connector was Para, proactively disconnect
       const acct: any = getAccount(wagmi);
+      const status = acct?.status; // 'connected' | 'disconnected' | ...
       const lastConn = acct?.connector as { id?: string; name?: string } | undefined;
-      const looksPara =
-        isParaLike(lastConn?.id) || isParaLike(lastConn?.name) || !!localStorage.getItem('para:session');
+      const currentIsPara = isParaLike(lastConn?.id) || isParaLike(lastConn?.name);
 
-      if (looksPara) {
-        if (acct?.status === 'connected') {
-          await disconnect(wagmi).catch(() => {});
-        }
-        // 2) Only clear Para’s own local keys (do not nuke wagmi/appkit caches)
-        try {
-          localStorage.removeItem('para:session');
-          localStorage.removeItem('para:user');
-        } catch {}
+      // Always clear Para's local keys (harmless noop if absent)
+      try {
+        localStorage.removeItem('para:session');
+        localStorage.removeItem('para:user');
+      } catch {}
+
+      // Only disconnect if we are CURRENTLY on Para.
+      if (status === 'connected' && currentIsPara) {
+        await disconnect(wagmi).catch(() => {});
       }
+      // If connected but NOT Para (Rabby/MetaMask), do NOT disconnect.
     } catch {}
   }
 
@@ -49,11 +48,9 @@ export default function ConnectButton() {
     setOpening(true);
     try {
       await softResetForReown();
-      // tiny delay lets the disconnect & localStorage settle before opening modal
-      await new Promise((r) => setTimeout(r, 20));
-      open(); // programmatically open Reown modal
+      await new Promise((r) => setTimeout(r, 20)); // let state settle
+      open(); // open Reown/AppKit modal
     } finally {
-      // let AppKit take over; we reset this when modal closes next time if needed
       setTimeout(() => setOpening(false), 150);
     }
   };
