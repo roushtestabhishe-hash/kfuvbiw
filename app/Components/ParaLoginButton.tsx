@@ -69,7 +69,7 @@ export default function ParaLoginButton() {
       disabled={loading}
       className="px-5 py-3 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800"
     >
-      {loading ? 'Connecting…' : 'Login with Para (Email/Social)'}
+      {loading ? 'Connecting…' : 'Social Login'}
     </button>
   );
 }
