@@ -12,7 +12,7 @@ function isParaLike(x?: string) { return (x || '').toLowerCase().includes('para'
 
 export default function WalletConnectButton() {
   const { address, connector, status } = useAccount();
-  const label = useMemo(() => (address ? short(address) : 'Connect Wallet'), [address]);
+  const label = useMemo(() => (address ? short(address) : 'EVM Wallet'), [address]);
   const { open } = useAppKit();
   const wagmi = wagmiAdapter.wagmiConfig;
   const [opening, setOpening] = useState(false);
