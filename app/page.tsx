@@ -100,6 +100,9 @@ const Navbar: React.FC = () => (
           <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
             <ConnectButton />
           </div>
+          <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
+            <ParaLoginButton />
+          </div>
         </div>
       </div>
     </div>
