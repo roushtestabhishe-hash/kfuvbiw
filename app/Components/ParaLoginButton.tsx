@@ -1,24 +1,17 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useAccount } from 'wagmi';
 import { connect } from '@wagmi/core';
 import { wagmiAdapter, chains, campMainnet, queryClient } from '@/app/Config';
 import { clearParaAll } from '@/app/lib/para/cleanup';
 
-function isParaLike(x?: string) { return (x || '').toLowerCase().includes('para'); }
-
 export default function ParaLoginButton() {
-  const { isConnected, connector } = useAccount();
+  const { isConnected } = useAccount();
   const [loading, setLoading] = useState(false);
 
-  // hide Para button if an injected wallet is connected (i.e., connected but NOT para)
-  const hide = useMemo(() => {
-    if (!isConnected) return false;
-    const name = (connector?.id || (connector as any)?.name || '').toLowerCase();
-    return !name.includes('para');
-  }, [isConnected, connector]);
-
+  // ✅ hide Para button whenever ANY wallet is connected (injected or Para)
+  const hide = isConnected;
   if (hide) return null;
 
   const onClick = async () => {
@@ -36,7 +29,6 @@ export default function ParaLoginButton() {
         appName: 'KAZAR',
         logo: '/para.svg',
         queryClient,
-        // social/email
         oAuthMethods: ['GOOGLE', 'TWITTER'],
         disableEmailLogin: false,
         disablePhoneLogin: false,
@@ -56,15 +48,14 @@ export default function ParaLoginButton() {
         },
       });
 
-      // pass the CreateConnectorFn directly
       await connect(wagmiAdapter.wagmiConfig as any, {
         connector: createFn as any,
         chainId: campMainnet.id,
       });
-      // success -> do nothing; refresh keeps Para connected
+      // success: stays connected; button remains hidden
 
     } catch (err) {
-      // user canceled OR any error -> wipe Para so injected can connect next click
+      // user cancelled or failed → clean Para artifacts so injected can connect cleanly
       await clearParaAll();
       console.warn('Para login canceled/failed; cleaned.', err);
     } finally {
