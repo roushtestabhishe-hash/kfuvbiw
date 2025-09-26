@@ -1,32 +1,37 @@
 'use client';
 
-import { useState } from 'react';
-import { connect, disconnect, getAccount } from '@wagmi/core';
+import { useState, useMemo } from 'react';
+import { connect } from '@wagmi/core';
+import { useAccount } from 'wagmi';
 import { wagmiAdapter, chains, campMainnet, queryClient } from '@/app/Config';
 
+function isParaLike(idOrName?: string) {
+  const v = idOrName?.toLowerCase?.() || '';
+  return v.includes('para');
+}
+
 export default function ParaLoginButton() {
+  const { connector, status } = useAccount(); // wagmi v2 returns connector & status
+  const isConnected = status === 'connected';
+  const currentIsPara = useMemo(
+    () => isParaLike(connector?.id) || isParaLike(connector?.name),
+    [connector]
+  );
+
+  // Show Para button only when:
+  //  - not connected, OR
+  //  - connected via Para
+  const showParaButton = !isConnected || currentIsPara;
+
   const [loading, setLoading] = useState(false);
+
+  if (!showParaButton) return null;
 
   const onClick = async () => {
     if (loading) return;
     setLoading(true);
-
     try {
-      // 1) If another wallet (e.g. MetaMask) is active, confirm before switching to Para
-      const current = getAccount(wagmiAdapter.wagmiConfig);
-      const currentConnectorId = (current.connector?.id || '').toLowerCase();
-
-      if (current.isConnected && currentConnectorId !== 'para') {
-        const ok = window.confirm(
-          'You are already connected with another wallet (e.g. MetaMask).\n' +
-          'To continue, we will switch the active wallet to Para.\n\nProceed?'
-        );
-        if (!ok) return;
-        // Explicitly disconnect to avoid odd intermediate events
-        await disconnect(wagmiAdapter.wagmiConfig);
-      }
-
-      // 2) Lazy-load Para + Wagmi connector only when the user confirms
+      // Lazy-load only on click
       const [{ para }, { paraConnector }] = await Promise.all([
         import('@/app/lib/para/client'),
         import('@getpara/wagmi-v2-integration'),
@@ -53,18 +58,18 @@ export default function ParaLoginButton() {
           darkBackgroundColor: '#1A1F2B',
           darkAccentColor: '#4D9FFF',
           mode: 'light',
-          borderRadius: 'none',
+          borderRadius: 'none' as const,
           font: 'Inter',
         },
       });
 
-      // 3) Switch to Para (this will become the active Wagmi connector)
+      // Pass CreateConnectorFn directly (cast for TS generics only)
       await connect(wagmiAdapter.wagmiConfig as any, {
         connector: createFn as any,
         chainId: campMainnet.id,
       });
     } catch (err) {
-      console.error('Para connect aborted/failed:', err);
+      console.error('Para login failed:', err);
     } finally {
       setLoading(false);
     }
@@ -74,10 +79,10 @@ export default function ParaLoginButton() {
     <button
       onClick={onClick}
       disabled={loading}
-      className="px-4 py-2 rounded-xl bg-white/10 text-white hover:bg-white/20"
+      className="px-4 py-3 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 disabled:opacity-60"
       aria-busy={loading}
     >
-      {loading ? 'Opening Para…' : 'Login with Para (Email/Social)'}
+      {loading ? 'Connecting…' : 'Login with Para (Email/Social)'}
     </button>
   );
 }
