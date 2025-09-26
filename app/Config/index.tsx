@@ -57,7 +57,7 @@ const metadata = {
 
 /** Final connectors: ONLY injected by default */
 const connectors: CreateConnectorFn[] = [
-  injected({ target: "metaMask", shimDisconnect: true }),
+  injected({ shimDisconnect: true }),
 ];
 
 /** Wagmi adapter (locks RPC to CAMP) */
