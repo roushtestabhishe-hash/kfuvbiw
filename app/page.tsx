@@ -601,10 +601,6 @@ function HomeClient() {
       </div>
 
       <Navbar />
-      <SidebarNav currentView={currentView} onViewChange={setCurrentView} />
-<div className="fixed bottom-6 right-6 z-50">
-  <ParaLoginButton />
-</div>
       <main className="mx-auto max-w-6xl w-full px-4 md:px-6 py-12 md:pl-24 pb-24 md:pb-12">
         {renderMainContent()}
       </main>
