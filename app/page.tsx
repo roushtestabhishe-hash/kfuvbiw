@@ -57,8 +57,6 @@ const BrandKazar: React.FC = () => {
 };
 
 const Navbar: React.FC = () => {
-  const { address } = useAccount();
-  return (
   <div className="sticky top-0 z-40 w-full">
     <div className="relative h-[72px]">
       {/* shaped panel */}
