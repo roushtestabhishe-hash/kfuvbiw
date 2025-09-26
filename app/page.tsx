@@ -56,7 +56,9 @@ const BrandKazar: React.FC = () => {
   );
 };
 
-const Navbar: React.FC = () => (
+const Navbar: React.FC = () => {
+  const { address } = useAccount();
+  return (
   <div className="sticky top-0 z-40 w-full">
     <div className="relative h-[72px]">
       {/* shaped panel */}
@@ -97,6 +99,12 @@ const Navbar: React.FC = () => (
           <div className="hidden md:grid place-items-center h-7 w-28 rounded-full bg-gradient-to-r from-amber-400/15 to-yellow-400/15 ring-1 ring-amber-400/25 text-[10px] font-semibold tracking-wider text-amber-200/85 backdrop-blur-sm">
             CAMP
           </div>
+
+{/* NEW: show only when not connected */}
+  {!address && (
+    <ParaLoginButton variant="link" label="Social Login" />
+  )}
+          
           <div className="transition-transform duration-200 hover:scale-[1.03] active:scale-[0.98]">
             <ConnectButton />
           </div>
